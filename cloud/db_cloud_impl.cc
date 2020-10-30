@@ -117,13 +117,13 @@ Status DBCloud::Open(const Options& opt, const std::string& local_dbname,
         0 /* rate_bytes_per_sec */, 0.25 /* max_trash_db_ratio */,
         64 * 1024 * 1024 /* bytes_max_delete_chunk */);
   }
-
   Env* local_env = cenv->GetBaseEnv();
   if (!read_only) {
     local_env->CreateDirIfMissing(
         local_dbname);  // MJR: TODO: Move into sanitize
   }
 
+/*
   st = cenv->SanitizeDirectory(options, local_dbname, read_only);
 
   if (st.ok()) {
@@ -132,6 +132,7 @@ Status DBCloud::Open(const Options& opt, const std::string& local_dbname,
   if (!st.ok()) {
     return st;
   }
+*/
   // If a persistent cache path is specified, then we set it in the options.
   if (!persistent_cache_path.empty() && persistent_cache_size_gb) {
     // Get existing options. If the persistent cache is already set, then do
@@ -189,6 +190,21 @@ Status DBCloud::Open(const Options& opt, const std::string& local_dbname,
   Log(InfoLogLevel::INFO_LEVEL, options.info_log,
       "Opened cloud db with local dir %s dbid %s. %s", local_dbname.c_str(),
       dbid.c_str(), st.ToString().c_str());
+  return st;
+}
+
+Status DBCloud::PrepareOpen(const DBOptions& opt, const std::string& local_dbname, bool read_only) {
+  CloudEnvImpl* cenv = static_cast<CloudEnvImpl*>(opt.env);
+  Env* local_env = cenv->GetBaseEnv();
+  if(!read_only) {
+    local_env->CreateDirIfMissing(local_dbname);
+  }
+
+  Status st = cenv->SanitizeDirectory(opt, local_dbname, read_only);
+
+  if (st.ok()) {
+    st = cenv->LoadCloudManifest(local_dbname, read_only);
+  }
   return st;
 }
 

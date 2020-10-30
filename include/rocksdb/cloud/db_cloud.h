@@ -44,6 +44,9 @@ class DBCloud : public StackableDB {
                      std::vector<ColumnFamilyHandle*>* handles, DBCloud** dbptr,
                      bool read_only = false);
 
+  // prepare open for ListColumnFamilies.
+  static Status PrepareOpen(const DBOptions& options, const std::string& dbname, bool read_only = false);
+
   // Synchronously copy all relevant files (if any) from source cloud storage to
   // destination cloud storage.
   virtual Status Savepoint() = 0;
