@@ -328,6 +328,7 @@ Status KafkaController::TailStream() {
         partitions_[message->partition()]->set_offset(message->offset());
         break;
       }
+      case RdKafka::ERR__TIMED_OUT:
       case RdKafka::ERR__PARTITION_EOF: {
         // There are no new messages.
         consumer_->poll(50);
